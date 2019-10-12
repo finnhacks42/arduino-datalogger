@@ -1,0 +1,27 @@
+
+
+# POST
+curl -F 'value=21' -H "X-AIO-Key: 1cee138a9acd409c9b9d52cd79ff7b68" http://io.adafruit.com/api/v2/finn24/feeds/temp/data --verbose
+
+# Get
+curl -H "X-AIO-Key: 1cee138a9acd409c9b9d52cd79ff7b68" https://io.adafruit.com/api/v2/finn24/feeds/temp/data 
+
+
+POST /api/v2/finn24/feeds/temp/data HTTP/1.1
+X-AIO-Key: 1cee138a9acd409c9b9d52cd79ff7b68
+
+POST /api/v2/finn24/feeds/temp/data HTTP/1.1
+Host: io.adafruit.com
+User-Agent: test
+Accept: */*
+X-AIO-Key: 1cee138a9acd409c9b9d52cd79ff7b68
+Content-Length: 8
+Content-Type: application/x-www-form-urlencoded
+
+value=26
+
+
+
+
+
+
