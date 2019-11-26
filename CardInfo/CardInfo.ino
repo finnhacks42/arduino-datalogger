@@ -27,24 +27,27 @@
 #define DHTPIN 3 
 #define DHTTYPE DHT22
 
+//wiring for UNO. 
+// SDA -> SDA
+// SCL -> SCL
+// SCK -> 13
+// MISO -> 12
+// MOSI -> 11
+// CS -> 10
+
+
 // set up variables using the SD utility library functions:
 Sd2Card card;
 SdVolume volume;
 SdFile root;
-DHT dht(DHTPIN, DHTTYPE);
 
-// change this to match your SD shield or module;
-// Arduino Ethernet shield: pin 4
+
 // Adafruit SD shields and modules: pin 10
-// Sparkfun SD shield: pin 8
-// MKRZero SD: SDCARD_SS_PIN
 const int chipSelect = 10;
-const int ledPin = 2;
 
 
 void setup() {
-  pinMode(ledPin, OUTPUT);
-  dht.begin();
+  delay(2000);
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
   while (!Serial) {
@@ -121,16 +124,8 @@ void setup() {
   root.ls(LS_R | LS_DATE | LS_SIZE);
 }
 
+long count = 0;
 void loop(void) {
   delay(2000);
-  float h = dht.readHumidity();
-  float t = dht.readTemperature();
-  Serial.print(h);
-  Serial.print(",");
-  Serial.println(t);
-  
-  digitalWrite(ledPin, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(100);                       // wait for a second
-  digitalWrite(ledPin, LOW);    // turn the LED off by making the voltage LOW
-  delay(100);
+  Serial.println(count);
 }
