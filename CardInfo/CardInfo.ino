@@ -22,10 +22,7 @@
 // include the SD library:
 #include <SPI.h>
 #include <SD.h>
-#include "DHT.h"
 
-#define DHTPIN 3 
-#define DHTTYPE DHT22
 
 //wiring for UNO. 
 // SDA -> SDA
@@ -49,7 +46,7 @@ const int chipSelect = 10;
 void setup() {
   delay(2000);
   // Open serial communications and wait for port to open:
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
