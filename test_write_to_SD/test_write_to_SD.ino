@@ -62,24 +62,28 @@ void setup() {
 void loop() {
   delay(3000);
   DateTime now = rtc.now();
-  unsigned long timestamp = now.unixtime();
-
+  
   float temp = random(1, 3000) / 100.0; // a dummpy tempuraure between 1 and 30.
+  float humid = random(1, 3000) / 100.0; // a dummpy tempuraure between 1 and 30.
   int temp_int = (int)temp;
   int temp_fra = (int)((temp - (float)temp_int)*10); //fraction to one decimal place
-   
-  const char* fmt = PSTR("%lu,%d.%d");
-  int buf_len = snprintf_P(nullptr,0,fmt,timestamp,temp_int,temp_fra);
-  char buf[buf_len];
-  sprintf_P(buf,fmt,timestamp,temp_int,temp_fra);
-  Serial.println(buf);
+  int h_int = (int)humid;
+  int h_fra = (int)((humid - (float)h_int)*10);
+
+  char buf1[30];
+  const char* fmt = PSTR("%04d-%02d-%02d,%02d:%02d:%02d,%02d.%01d,%02d.%01d");
+  sprintf_P(buf1,fmt, now.year(), now.month(),now.day(),
+                      now.hour(), now.minute(),now.second(),
+                      temp_int, temp_fra, h_int, h_fra);
+                                       
+  Serial.println(buf1);
 
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
   File dataFile = SD.open("datalog.txt", FILE_WRITE);
   // if the file is available, write to it:
   if (dataFile) {
-    dataFile.println(buf);
+    dataFile.println(buf1);
     dataFile.close();
     // print to the serial port too:
     Serial.println(":written to card");
