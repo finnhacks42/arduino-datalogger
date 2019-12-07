@@ -13,7 +13,7 @@ int DIO = 6;
 const int chipSelect = 10;
 const int tempSensorPin = 4;
 int error_count = 0;
-int debug = 1;
+int debug = 0;
 
 TM1637Display display(CLK, DIO);
 
@@ -32,11 +32,13 @@ void setup() {
   if (! rtc.isrunning()) {
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
-  
+  pinMode(chipSelect,OUTPUT);
   // see if the card is present and can be initialized:
-  if (!SD.begin(chipSelect)) {
-    Serial.println("Card failed, or not present");
-    while (1);
+  while (!SD.begin(chipSelect)) {
+    if (debug) {
+      Serial.println("Card failed, or not present");
+    }
+    delay(10000);
   }
   if (debug == 1){
     Serial.println("Card initialized."); 
@@ -44,7 +46,7 @@ void setup() {
 }
 
 void loop() {
-  delay(10000);
+  
   display.setBrightness(0x0f);
   DateTime now = rtc.now();
 
@@ -53,7 +55,12 @@ void loop() {
 
   display.clear();
   display.setBrightness(0x0f);
-  display.showNumberDecEx(temp*100,0x40,false);
+  if (error_count < 1){
+    display.showNumberDecEx(temp*100,0x40,false);
+  } else {
+    display.showNumberDecEx(0,0x40,false);
+    restart_card();
+  }
   uint8_t data[] = {0xff};
   data[0] = display.encodeDigit(0x0c);
   display.setSegments(data,1,3);
@@ -71,15 +78,18 @@ void loop() {
                       temp_int, temp_fra, h_int, h_fra);
   if (debug == 1){
     Serial.println(buf1);
+    Serial.print("error_count:");
+    Serial.println(error_count);
   }
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
   File dataFile = SD.open("datalog.txt", FILE_WRITE);
+  Serial.println(dataFile);
+  flush_cashe();
   // if the file is available, write to it:
-  if (dataFile) {
+    if (dataFile) {
     dataFile.println(buf1);
     dataFile.close();
-    error_count = 0;
   }
   // if the file isn't open, pop up an error:
   else {
@@ -88,5 +98,65 @@ void loop() {
       Serial.println("error opening datalog.txt");
     }
   }
+   
+  delay(10000);
+}  
 
+
+
+//attempting and failing to write a different file stops the card from reporting that datalog.txt is still available when it isn't
+// I don't know why attempting to write doesn't work or how this clears out some cache but anyway ...
+ bool flush_cashe(){ 
+    char filename[12]; // Room for an 7.3 name with a NULL terminator
+    int randomNumber = random(1,1000000 );
+    sprintf(filename, "%7d.txt", randomNumber);
+    Serial.println(filename);
+    File dataFile = SD.open(filename,FILE_WRITE);
+    if (dataFile){
+      delay(1500);
+      dataFile.close();
+      delay(1500);
+      return true; 
+    }
+   dataFile.close();
+   delay(1500);
+   return false;
+ }
+
+ void clearSD()
+{
+  byte sd = 0;
+  digitalWrite(chipSelect, LOW);
+  while (sd != 255)
+  {
+    sd = SPI.transfer(255);
+  }
+  digitalWrite(chipSelect, HIGH);
+}
+
+void restart_card()
+{
+  
+  SPI.begin();
+  delay(10);
+  boolean b;
+  // *** SD Card **
+  b = SD.begin(chipSelect);
+  if (!b)
+  {
+    delay(100);
+    clearSD();
+    delay(100);
+    b = SD.begin(chipSelect);
+  }
+  if (b) {
+    if (debug) {
+      Serial.println("SD Card started.");
+    }
+    error_count = 0;
+ } else {
+    if (debug) {
+      Serial.println("SD Card failed to start!");
+    }
+ }
 }
